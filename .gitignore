@@ -7,13 +7,11 @@
 
 # User uploads
 /libraries/uploads/*
-/regression-pcaps/uploads/*
-/regression-rules/uploads/*
+
 
 # Keep upload directories in Git if needed
 !/libraries/uploads/.gitkeep
-!/regression-pcaps/uploads/.gitkeep
-!/regression-rules/uploads/.gitkeep
+
 
 # Local scenarios
 /scenarios/*.json
