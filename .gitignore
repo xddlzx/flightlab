@@ -1,0 +1,51 @@
+# FlightLab binaries
+/flightlab
+/flightlab.exe
+
+# Runtime evidence
+/results/
+
+# User uploads
+/libraries/uploads/*
+/regression-pcaps/uploads/*
+/regression-rules/uploads/*
+
+# Keep upload directories in Git if needed
+!/libraries/uploads/.gitkeep
+!/regression-pcaps/uploads/.gitkeep
+!/regression-rules/uploads/.gitkeep
+
+# Local scenarios
+/scenarios/*.json
+
+# Temporary / backup files
+*.bak
+*.save
+*.tmp
+*.swp
+*.orig
+*.before-*
+*~
+
+# Coverage / test output
+coverage.out
+*.cover
+*.test
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Environment / secrets
+.env
+.env.*
+
+# Packet captures and logs
+*.pcap
+*.pcapng
+*.log
+
+# Keep an empty scenarios directory
+!/scenarios/.gitkeep

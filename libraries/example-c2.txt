@@ -1,0 +1,8 @@
+# FlightLab example C2 library
+
+dns:beacon-one.test
+dns:beacon-two.test
+
+ip:10.0.3.20:4444
+ip:192.168.56.50:8080
+

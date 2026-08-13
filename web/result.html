@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FlightLab Result</title>
+
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div>
+            <h1>FlightLab Run Result</h1>
+
+            <p id="result-subtitle">
+                Loading run...
+            </p>
+        </div>
+
+        <a
+            href="/"
+            class="back-link"
+        >
+            ← Back to Dashboard
+        </a>
+    </header>
+
+
+    <!-- Run Summary -->
+    <section class="card">
+
+        <h2>Run Summary</h2>
+
+        <div class="result-grid">
+
+            <div>
+                <span>Status</span>
+                <strong id="result-status">-</strong>
+            </div>
+
+            <div>
+                <span>Module</span>
+                <strong id="result-module">-</strong>
+            </div>
+
+            <div>
+                <span>Run ID</span>
+                <strong id="result-id">-</strong>
+            </div>
+
+            <div>
+                <span>Duration</span>
+                <strong id="result-duration">-</strong>
+            </div>
+
+            <div>
+                <span>Interface</span>
+                <strong id="result-interface">-</strong>
+            </div>
+
+            <div>
+                <span>Mode</span>
+                <strong id="result-mode">-</strong>
+            </div>
+
+            <div>
+                <span>DNS Events</span>
+                <strong id="result-dns-events">-</strong>
+            </div>
+
+            <div>
+                <span>Suricata Alerts</span>
+                <strong id="result-alert-count">-</strong>
+            </div>
+
+            <div class="wide">
+                <span>Evidence</span>
+                <strong id="result-evidence">-</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- Detection Metrics -->
+    <section
+        id="metrics-section"
+        class="card hidden"
+    >
+
+        <h2>Detection Metrics</h2>
+
+        <div class="metrics-grid">
+
+            <div>
+                <span>Targets Generated</span>
+                <strong id="metric-total">-</strong>
+            </div>
+
+            <div>
+                <span>Targets Observed</span>
+                <strong id="metric-observed">-</strong>
+            </div>
+
+            <div>
+                <span>Targets Alerted</span>
+                <strong id="metric-alerted">-</strong>
+            </div>
+
+            <div>
+                <span>Visibility Rate</span>
+                <strong id="metric-visibility">-</strong>
+            </div>
+
+            <div>
+                <span>Detection Rate</span>
+                <strong id="metric-detection">-</strong>
+            </div>
+
+        </div>
+
+
+        <div class="target-lists">
+
+            <div>
+                <h3>Observed Targets</h3>
+                <ul id="observed-targets"></ul>
+            </div>
+
+            <div>
+                <h3>Alerted Targets</h3>
+                <ul id="alerted-targets"></ul>
+            </div>
+
+        </div>
+
+    </section>
+
+<section id="regression-section" class="panel hidden">
+
+    <h2>Detection Regression / Same-PCAP Re-analysis</h2>
+
+    <p class="section-description">
+        Re-analyze the original packet capture from this run using
+        the current Suricata configuration or an optional custom ruleset.
+        The PCAP and FlightSim targets remain unchanged, so the detection
+        comparison stays valid. FlightSim traffic is not generated again.
+    </p>
+
+    <div class="regression-controls">
+
+        <label>
+            New Suricata Rules (optional)
+
+            <input
+                id="regression-rules-file"
+                type="file"
+                accept=".rules,text/plain"
+            >
+        </label>
+
+        <button
+            id="regression-run-button"
+            type="button"
+        >
+            Re-analyze Baseline PCAP
+        </button>
+
+        <div
+            id="regression-status"
+            class="regression-status"
+        ></div>
+
+    </div>
+
+
+    <div
+        id="regression-result"
+        class="hidden"
+    >
+
+        <div class="regression-rate-grid">
+
+            <div class="metric-card">
+                <span>Baseline Detection</span>
+                <strong id="reg-baseline-rate">-</strong>
+            </div>
+
+            <div class="regression-arrow">
+                →
+            </div>
+
+            <div class="metric-card">
+                <span>New Detection</span>
+                <strong id="reg-current-rate">-</strong>
+            </div>
+
+            <div class="metric-card">
+                <span>Change</span>
+                <strong id="reg-rate-change">-</strong>
+            </div>
+
+        </div>
+
+
+        <div
+            id="regression-verdict"
+            class="regression-verdict"
+        ></div>
+
+
+        <div class="regression-columns">
+
+            <div class="regression-list-card">
+                <h3>Newly Detected</h3>
+                <div id="reg-newly-detected">None</div>
+            </div>
+
+            <div class="regression-list-card">
+                <h3>Regressions</h3>
+                <div id="reg-regressions">None</div>
+            </div>
+
+        </div>
+
+
+        <div class="regression-evidence">
+
+            <strong>Method:</strong>
+
+            The original capture.pcap from this run was reprocessed.
+            If custom rules were uploaded, the exact rules file was
+            preserved with the regression evidence.
+            FlightSim was not executed again.
+
+        </div>
+
+    </div>
+
+</section>
+
+    <!-- Detection Gap Diagnosis -->
+    <section
+        id="diagnosis-section"
+        class="card panel hidden"
+    >
+
+        <h2>Detection Gap Diagnosis</h2>
+
+        <div
+            id="diagnosis-overall"
+            class="diagnosis-overall"
+        >
+
+            <div class="diagnosis-overall-label">
+                Overall Result
+            </div>
+
+            <div
+                id="diagnosis-status"
+                class="diagnosis-status"
+            ></div>
+
+            <div
+                id="diagnosis-reason"
+                class="diagnosis-reason"
+            ></div>
+
+        </div>
+
+
+        <div class="diagnosis-summary-grid">
+
+            <div class="metric-card">
+                <span>Detected</span>
+                <strong id="diag-detected">0</strong>
+            </div>
+
+            <div class="metric-card">
+                <span>Detection Gaps</span>
+                <strong id="diag-detection-gaps">0</strong>
+            </div>
+
+            <div class="metric-card">
+                <span>Telemetry Gaps</span>
+                <strong id="diag-telemetry-gaps">0</strong>
+            </div>
+
+            <div class="metric-card">
+                <span>Simulation Failures</span>
+                <strong id="diag-simulation-failures">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table class="diagnosis-table">
+
+                <thead>
+                    <tr>
+                        <th>Target</th>
+                        <th>Type</th>
+                        <th>Generated</th>
+                        <th>Observed</th>
+                        <th>Alerted</th>
+                        <th>Diagnosis</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+
+                <tbody id="diagnosis-target-body">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- Suricata Alert Details -->
+    <section
+        id="alerts-section"
+        class="card hidden"
+    >
+
+        <h2>Suricata Alert Details</h2>
+
+        <p
+            id="alerts-summary"
+            class="section-description"
+        ></p>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Target</th>
+                        <th>SID</th>
+                        <th>Severity</th>
+                        <th>Signature</th>
+                        <th>DNS Result</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="alerts-body"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- Parsed Events -->
+    <section class="card">
+
+        <h2>Parsed Events</h2>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Module</th>
+                        <th>Type</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+
+                <tbody id="events-body"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- Raw FlightSim Output -->
+    <section class="card">
+
+        <h2>Raw FlightSim Output</h2>
+
+        <pre id="raw-output"></pre>
+
+    </section>
+
+</div>
+
+
+<script src="/result.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,4 @@
+alert dns any any -> any any (msg:"FLIGHTLAB REGRESSION V2 DGA TEST"; dns.query; content:"0xaovnv.info"; nocase; sid:2000101; rev:1;)
+alert dns any any -> any any (msg:"FLIGHTLAB REGRESSION V2 DGA TEST"; dns.query; content:"aienij7.com"; nocase; sid:2000102; rev:1;)
+alert dns any any -> any any (msg:"FLIGHTLAB REGRESSION V2 DGA IMPROVED"; dns.query; content:"ft4zpnr.info"; nocase; sid:2000103; rev:1;)
+

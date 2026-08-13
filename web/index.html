@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <title>FlightLab</title>
+
+
+
+    <link rel="stylesheet" href="/style.css">
+
+</head>
+
+
+
+<body>
+
+
+
+<div class="container">
+
+
+
+    <header>
+
+        <div>
+
+            <h1>FlightLab</h1>
+
+            <p>FlightSim Detection Testing Dashboard</p>
+
+        </div>
+
+
+
+        <div id="api-status" class="status-badge">
+
+            Checking API...
+
+        </div>
+
+    </header>
+
+
+
+
+
+    <!-- Simulation Controls -->
+
+    <section class="card">
+
+
+
+        <h2>Simulation</h2>
+
+
+
+        <div class="form-grid">
+
+
+
+            <label>
+
+                Module
+
+                <select id="module"></select>
+
+            </label>
+
+	    
+
+	    <div id="c2-options" class="hidden">
+
+
+
+    <label>
+
+        Target Source
+
+
+
+        <select id="c2-source">
+
+            <option value="wisdom">
+
+                AlphaSOC Wisdom
+
+            </option>
+
+
+
+            <option value="custom">
+
+                Custom C2 Library
+
+            </option>
+
+        </select>
+
+    </label>
+
+
+
+
+
+    <div id="c2-file-group" class="hidden">
+
+
+
+        <label>
+
+            C2 Target Library
+
+
+
+            <input
+
+                id="c2-file"
+
+                type="file"
+
+                accept=".txt,text/plain"
+
+            >
+
+        </label>
+
+
+
+        <small class="field-help">
+
+            TXT format:
+
+            dns:&lt;domain&gt; or
+
+            ip:&lt;address&gt;:&lt;port&gt;
+
+        </small>
+
+
+
+        <div
+
+            id="c2-library-status"
+
+            class="library-status"
+
+        ></div>
+
+
+
+    </div>
+
+</div>
+
+
+<div id="ssh-transfer-options" class="hidden">
+
+    <label>
+        Transfer Size
+
+        <select id="ssh-transfer-size">
+            <option value="1MB">1 MB</option>
+            <option value="5MB">5 MB</option>
+            <option value="10MB">10 MB</option>
+        </select>
+    </label>
+
+    <small class="field-help">
+        Amount of randomly generated data transferred over SSH/SFTP.
+    </small>
+
+</div>
+
+<div id="ssh-exfil-options" class="hidden">
+
+    <label>
+        Transfer Size
+
+        <select id="ssh-exfil-size">
+            <option value="1MB">1 MB</option>
+            <option value="5MB">5 MB</option>
+            <option value="10MB">10 MB</option>
+        </select>
+    </label>
+
+    <small class="field-help">
+        Amount of randomly generated data transferred during the SSH exfiltration simulation.
+    </small>
+
+</div>
+	    
+
+            <label>
+
+                Size
+
+                <input
+
+                    id="size"
+
+                    type="number"
+
+                    min="1"
+
+                    max="100"
+
+                    value="2"
+
+                >
+
+            </label>
+
+
+
+            <label>
+
+         	Interface
+
+ 	 	<input
+
+    	 	   id="interface"
+
+    	 	   type="text"
+
+	 	    placeholder="Automatic(default route)"
+
+	 	   >
+
+           <small class="field-help">
+
+    Leave empty to use the interface selected by the system's default route.</small>
+
+	    </label>
+
+
+
+            <label>
+                Run Mode
+
+                <select id="run-mode">
+
+                    <option value="preview">
+                        Preview / Dry Run
+                    </option>
+
+                    <option value="evaluation">
+                        Detection Evaluation
+                    </option>
+
+                </select>
+
+                <small
+                    id="run-mode-help"
+                    class="field-help"
+                >
+                    Preview only — no real traffic, packet capture,
+                    detection metrics, or regression testing.
+                </small>
+            </label>
+
+
+
+        </div>
+
+
+
+        <button id="run-button">
+
+            Run Simulation
+
+        </button>
+
+
+
+        <div id="run-message"></div>
+
+
+
+    </section>
+<!-- Detection Coverage Matrix -->
+<section class="card">
+
+    <div class="section-heading">
+
+        <div>
+            <h2>Detection Coverage Matrix</h2>
+
+            <p id="coverage-summary">
+                Loading module coverage...
+            </p>
+        </div>
+
+        <button
+            id="refresh-coverage"
+            class="secondary-button"
+        >
+            Refresh
+        </button>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Module</th>
+                    <th>Tested</th>
+                    <th>Generated</th>
+                    <th>Observed</th>
+                    <th>Alerted</th>
+                    <th>Visibility</th>
+                    <th>Detection</th>
+                    <th>Diagnosis</th>
+                </tr>
+            </thead>
+
+            <tbody id="coverage-body"></tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+
+
+
+    <!-- Recent Runs -->
+
+    <section class="card">
+
+
+
+        <div class="section-heading">
+
+            <div>
+
+                <h2>Recent Runs</h2>
+
+                <p>Previously saved FlightLab executions</p>
+
+            </div>
+
+
+
+            <button
+
+                id="refresh-runs"
+
+                class="secondary-button"
+
+            >
+
+                Refresh
+
+            </button>
+
+        </div>
+
+
+
+        <div class="table-wrapper">
+
+
+
+            <table>
+
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>Time</th>
+
+                        <th>Module</th>
+
+                        <th>Mode</th>
+
+                        <th>Status</th>
+
+                        <th>Events</th>
+
+                        <th>Duration</th>
+
+                        <th>Run ID</th>
+
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody id="runs-body"></tbody>
+
+
+
+            </table>
+
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+
+
+    <!-- Detection Metrics -->
+
+    <section
+
+        id="metrics-section"
+
+        class="card hidden"
+
+    >
+
+
+
+        <h2>Detection Metrics</h2>
+
+
+
+        <div class="metrics-grid">
+
+
+
+            <div>
+
+                <span>Targets Generated</span>
+
+                <strong id="metric-total">-</strong>
+
+            </div>
+
+
+
+            <div>
+
+                <span>Targets Observed</span>
+
+                <strong id="metric-observed">-</strong>
+
+            </div>
+
+
+
+            <div>
+
+                <span>Targets Alerted</span>
+
+                <strong id="metric-alerted">-</strong>
+
+            </div>
+
+
+
+            <div>
+
+                <span>Visibility Rate</span>
+
+                <strong id="metric-visibility">-</strong>
+
+            </div>
+
+
+
+            <div>
+
+                <span>Detection Rate</span>
+
+                <strong id="metric-detection">-</strong>
+
+            </div>
+
+
+
+        </div>
+
+
+
+
+
+        <div class="target-lists">
+
+
+
+            <div>
+
+                <h3>Observed Targets</h3>
+
+                <ul id="observed-targets"></ul>
+
+            </div>
+
+
+
+            <div>
+
+                <h3>Alerted Targets</h3>
+
+                <ul id="alerted-targets"></ul>
+
+            </div>
+
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+<section
+
+    id="alerts-section"
+
+    class="card hidden"
+
+>
+
+
+
+    <h2>Suricata Alert Details</h2>
+
+
+
+    <p
+
+        id="alerts-summary"
+
+        class="section-description"
+
+    ></p>
+
+
+
+    <div class="table-wrapper">
+
+
+
+        <table>
+
+
+
+            <thead>
+
+                <tr>
+
+                    <th>Time</th>
+
+                    <th>Target</th>
+
+                    <th>SID</th>
+
+                    <th>Severity</th>
+
+                    <th>Signature</th>
+
+                    <th>DNS Result</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+
+
+            <tbody id="alerts-body"></tbody>
+
+
+
+        </table>
+
+
+
+    </div>
+
+
+
+</section>
+
+    <!-- Parsed Events -->
+
+    <section
+
+        id="events-section"
+
+        class="card hidden"
+
+    >
+
+
+
+        <h2>Parsed Events</h2>
+
+
+
+        <div class="table-wrapper">
+
+
+
+            <table>
+
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>Time</th>
+
+                        <th>Module</th>
+
+                        <th>Type</th>
+
+                        <th>Message</th>
+
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody id="events-body"></tbody>
+
+
+
+            </table>
+
+
+
+        </div>
+
+
+
+    </section>
+
+
+
+
+
+    <!-- Raw Output -->
+
+    <section
+
+        id="output-section"
+
+        class="card hidden"
+
+    >
+
+
+
+        <h2>Raw FlightSim Output</h2>
+
+
+
+        <pre id="raw-output"></pre>
+
+
+
+    </section>
+
+
+
+</div>
+
+
+
+
+
+<script src="/app.js"></script>
+
+
+
+</body>
+
+</html>
