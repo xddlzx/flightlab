@@ -37,7 +37,7 @@ func main() {
 	rulesPath := flag.String(
 		"rules",
 		"",
-		"Suricata rules file used for regression analysis",
+		"optional Suricata rules file used for regression analysis",
 	)
 
 	// FlightLab command-line options.
@@ -62,7 +62,7 @@ func main() {
 	dryRun := flag.Bool(
 		"dry",
 		true,
-		"run without generating network traffic",
+		"preview module actions without executing the main simulation traffic",
 	)
 
 	iface := flag.String(
@@ -126,15 +126,6 @@ func main() {
 	// different Suricata ruleset without generating
 	// network traffic again.
 	if *regressionRun != "" {
-		if *rulesPath == "" {
-			fmt.Fprintln(
-				os.Stderr,
-				"-rules is required with -regression-run",
-			)
-
-			os.Exit(1)
-		}
-
 		result, err :=
 			regression.Reanalyze(
 				"results",

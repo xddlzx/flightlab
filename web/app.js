@@ -281,8 +281,9 @@ function updateRunModeHelp() {
     }
 
     runModeHelp.textContent =
-        "Preview only — no real traffic, packet capture, " +
-        "detection metrics, or regression testing.";
+    "Preview module actions without executing the main simulation traffic. " +
+    "Some initialization or target-discovery network activity may still occur. " +
+    "No FlightLab PCAP, detection metrics, or regression results are produced.";
 }
 
 
