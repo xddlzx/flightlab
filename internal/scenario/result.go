@@ -64,6 +64,8 @@ type Result struct {
 
 	Metrics *DetectionMetrics `json:"metrics,omitempty"`
 
+	AnalysisError string `json:"analysis_error,omitempty"`
+
 	Diagnosis *DiagnosisSummary `json:"diagnosis,omitempty"`
 
 	C2LibraryPath string `json:"c2_library_path,omitempty"`

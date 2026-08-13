@@ -867,6 +867,13 @@ func (s Server) handleRun(
 			config,
 		)
 
+	// Keep Suricata/correlation failures separate from
+	// FlightSim execution failures.
+	//
+	// The run evidence should still be preserved even when
+	// detection analysis fails.
+	var analysisErr error
+
 	// If the FlightSim run succeeded and Suricata was requested,
 	// analyze the temporary packet capture before saving evidence.
 	if runErr == nil &&
@@ -879,64 +886,71 @@ func (s Server) handleRun(
 			)
 
 		if err != nil {
-			writeJSON(
-				w,
-				http.StatusInternalServerError,
-				map[string]string{
-					"error": err.Error(),
-				},
-			)
-			return
+
+			analysisErr =
+				fmt.Errorf(
+					"Suricata analysis failed: %w",
+					err,
+				)
+
+			result.AnalysisError =
+				analysisErr.Error()
+
+		} else {
+
+			result.SuricataTempPath =
+				analysis.EvePath
+
+			result.SuricataTempDir =
+				analysis.TempDir
+
+			result.SuricataPath =
+				"suricata-eve.json"
+
+			result.SuricataEventCounts =
+				analysis.EventCounts
+
+			result.SuricataAlertCount =
+				analysis.AlertCount
+
+			result.SuricataAlerts =
+				analysis.Alerts
+
+			// Use the generic correlation entry point.
+			metrics, err :=
+				detection.Correlate(
+					config.Module,
+					result.Events,
+					analysis.EvePath,
+				)
+
+			if err != nil {
+
+				analysisErr =
+					fmt.Errorf(
+						"detection correlation failed: %w",
+						err,
+					)
+
+				result.AnalysisError =
+					analysisErr.Error()
+
+			} else {
+
+				result.Metrics =
+					metrics
+
+				result.Diagnosis =
+					diagnosis.Analyze(
+						result.Success,
+						result.Metrics,
+					)
+			}
 		}
-
-		result.SuricataTempPath =
-			analysis.EvePath
-
-		result.SuricataTempDir =
-			analysis.TempDir
-
-		result.SuricataPath =
-			"suricata-eve.json"
-
-		result.SuricataEventCounts =
-			analysis.EventCounts
-
-		result.SuricataAlertCount =
-			analysis.AlertCount
-
-		result.SuricataAlerts =
-			analysis.Alerts
-
-		// Use the generic correlation entry point.
-		metrics, err :=
-			detection.Correlate(
-				config.Module,
-				result.Events,
-				analysis.EvePath,
-			)
-
-		if err != nil {
-			writeJSON(
-				w,
-				http.StatusInternalServerError,
-				map[string]string{
-					"error": err.Error(),
-				},
-			)
-			return
-		}
-
-		result.Metrics =
-			metrics
-
-		result.Diagnosis =
-			diagnosis.Analyze(
-				result.Success,
-				result.Metrics,
-			)
 	}
 
-	// Save evidence even when FlightSim starts but later fails.
+	// Save evidence even when FlightSim starts but later fails,
+	// or when Suricata/correlation analysis fails.
 	evidenceDir := ""
 
 	if result.ID != "" {
@@ -960,12 +974,29 @@ func (s Server) handleRun(
 		}
 	}
 
+	// FlightSim itself failed.
+	// Evidence has already been preserved above when possible.
 	if runErr != nil {
 		writeJSON(
 			w,
 			http.StatusInternalServerError,
 			map[string]any{
 				"error":        runErr.Error(),
+				"result":       result,
+				"evidence_dir": evidenceDir,
+			},
+		)
+		return
+	}
+
+	// FlightSim succeeded, but Suricata or correlation failed.
+	// Again, evidence has already been preserved.
+	if analysisErr != nil {
+		writeJSON(
+			w,
+			http.StatusInternalServerError,
+			map[string]any{
+				"error":        analysisErr.Error(),
 				"result":       result,
 				"evidence_dir": evidenceDir,
 			},
@@ -982,7 +1013,6 @@ func (s Server) handleRun(
 		},
 	)
 }
-
 func writeJSON(
 	w http.ResponseWriter,
 	status int,
